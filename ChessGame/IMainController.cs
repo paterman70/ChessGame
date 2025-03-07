@@ -16,5 +16,6 @@ namespace ChessGame
         void Load(string filePath);
         void Load(StringBuilder sb);
         List<Board> GetTheGame();
+        ScoreSheet GetScoreSheet();
     }
 }

@@ -70,5 +70,10 @@ namespace ChessGame
         {
             return mainController.GetTheGame();
         }
+
+        public ScoreSheet GetTScoreSheet()
+        {
+            return mainController.GetScoreSheet();
+        }
     }
 }

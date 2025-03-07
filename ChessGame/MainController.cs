@@ -230,6 +230,9 @@ namespace ChessGame
             return Game;
         }
 
-      
+        public ScoreSheet GetScoreSheet()
+        {
+            return MySheet;
+        }
     }
 }
