@@ -6,22 +6,18 @@ using System.Threading.Tasks;
 
 namespace ChessGame
 {
-    public class Rook : Piece
+    public class Queen : Piece
     {
-        public Rook(Color color)
+        public Queen(Color color)
         {
             PieceColor = color;
             IsCaptured = false;
             if (color == Color.White)
-                Symbol = "wR";
+                Symbol = "wQ";
             else
-                Symbol = "bR";
-            PieceName = "Rook";
-            Value = 5;
-        }
-        public Rook()
-        {
-
+                Symbol = "bQ";
+            PieceName = "Queen";
+            Value = 9;
         }
         public override List<string> GetCaptures()
         {
@@ -33,7 +29,7 @@ namespace ChessGame
             Moves m = new Moves();
             char _file = p1.File;
             int _rank = p1.Rank;
-
+            // Horizontal moves
             for (char f = 'a'; f <= 'h'; f++)
             {
                 if (f < _file)
@@ -97,6 +93,58 @@ namespace ChessGame
                 }
             }
 
+            // Diagonals
+            for (int offset = 1; offset < 8; offset++)
+            {
+                if (IsValidPosition((char)(_file + offset), _rank + offset))
+                    if (PieceColor == Color.White)
+                    {
+                        Pos p = new Pos((char)(_file + offset), _rank + offset);
+                        m.AddUpRightMove(p, false);
+                    }
+                    else
+                    {
+                        Pos p = new Pos((char)(_file + offset), _rank + offset);
+                        m.AddDownLeftMove(p, false);
+                    }
+
+                if (IsValidPosition((char)(_file - offset), _rank + offset))
+                    if (PieceColor == Color.White)
+                    {
+                        Pos p = new Pos((char)(_file - offset), _rank + offset);
+                        m.AddUpLeftMove(p, false);
+                    }
+                    else
+                    {
+                        Pos p = new Pos((char)(_file - offset), _rank + offset);
+                        m.AddDownRightMove(p, false);
+                    }
+
+                if (IsValidPosition((char)(_file + offset), _rank - offset))
+                    if (PieceColor == Color.White)
+                    {
+                        Pos p = new Pos((char)(_file + offset), _rank - offset);
+                        m.AddDownRightMove(p, false);
+                    }
+                    else
+                    {
+                        Pos p = new Pos((char)(_file + offset), _rank - offset);
+                        m.AddUpLeftMove(p, false);
+                    }
+
+                if (IsValidPosition((char)(_file - offset), _rank - offset))
+                    if (PieceColor == Color.White)
+                    {
+                        Pos p = new Pos((char)(_file - offset), _rank - offset);
+                        m.AddDownLeftMove(p, false);
+                    }
+                    else
+                    {
+                        Pos p = new Pos((char)(_file - offset), _rank - offset);
+                        m.AddUpRightMove(p, false);
+                    }
+            }
+
             return m;
         }
 
@@ -111,6 +159,5 @@ namespace ChessGame
             throw new NotImplementedException();
         }
 
-       
     }
 }

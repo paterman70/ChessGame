@@ -8,5 +8,13 @@ namespace ChessGame
 {
     interface IMainController
     {
+        bool Verbose { get; set; }
+        bool XMLOutput { get; set; }
+
+        void DisplayBoard();
+        void DisplayPlayerMoves();
+        void Load(string filePath);
+        void Load(StringBuilder sb);
+        List<Board> GetTheGame();
     }
 }
