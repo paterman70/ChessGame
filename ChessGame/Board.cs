@@ -720,7 +720,7 @@ namespace ChessGame
         }
         public void Display()
         {
-            GameState GS= GameState.Instance;
+            ScoreSheet MySheet= ScoreSheet.Instance;
             MovementIndicator In = MovementIndicator.Instance;
             for (int i=7; i >-1; i--)
             {
@@ -733,7 +733,8 @@ namespace ChessGame
             }
             Console.WriteLine("");
             Console.WriteLine("Move: {0}  WM:{1}   BM:{2}   WV:{3}   BV:{4}", 
-                               In.GetIndex.No.ToString(), GS.WhiteMobility,   GS.BlackMobility,     GS.WhiteValue,      GS.BlackValue);
+                               In.GetIndex.No.ToString(), MySheet.WhiteMobility(In.GetIndex),   MySheet.BlackMobility(In.GetIndex),
+                               MySheet.WhiteValue(In.GetIndex),      MySheet.BlackValue(In.GetIndex));
             Console.WriteLine("");
 
             Console.WriteLine("Press any key to continue...");

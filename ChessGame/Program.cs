@@ -50,11 +50,14 @@ namespace ChessGame
 
 
                     default:
+                        app.Load("test1.pgn");
                         break;
                 }
             }
-          
-            
+            else
+                app.Load("test1.pgn");
+
+
         }
     }
 }

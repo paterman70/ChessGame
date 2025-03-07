@@ -198,9 +198,10 @@ namespace ChessGame
 
                         if (enPas.IsAvailable) enPas.DangerPawn=p;
 
-                        B.UpdateMoves();
-                        MyGameState.Update(B.GetPieces());
+                        B.UpdateMoves(); 
                         MoveIndicator.NextMove();
+                        MySheet.Update(B.GetPieces(),MoveIndicator.GetIndex);
+                       
                     }
                     else
                     {
@@ -216,8 +217,9 @@ namespace ChessGame
                         ls[j].MovePieceTo(ls[j + 1]);
                     }
                     B.UpdateMoves();
-                    MyGameState.Update(B.GetPieces());
                     MoveIndicator.NextMove();
+                    MySheet.Update(B.GetPieces(), MoveIndicator.GetIndex);
+                    
                 }
             }
             return B;

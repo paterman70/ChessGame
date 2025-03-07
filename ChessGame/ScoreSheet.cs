@@ -8,37 +8,46 @@ namespace ChessGame
 {
     public class ScoreSheet
     {
-        List<Move> Sheet;
-        string score;
-        string site;
-        string Player1;
-        string Player2;
-        string tournament;
-        string round;
-        string timecontrol;
-        int Player1Elo;
-        int Player2Elo;
+        List<Move> Sheet= new List<Move>();
+        string score = "";
+        string site = "";
+        string Player1 = "";
+        string Player2 = "";
+        string tournament = "";
+        string round = "";
+        string timecontrol = "";
+        int Player1Elo=0;
+        int Player2Elo=0;
         DateTime date;
         DateTime Player1EndingTime;
         DateTime Player2EndingTime;
-        private MovementIndicator MoveIndicator;
-        
+        private MovementIndicator MoveIndicator =MovementIndicator.Instance;
+        private static ScoreSheet _instance;
+        private static readonly object _lock = new object();
 
-        public ScoreSheet()
+        private List<int> WMobility = new List<int>();
+        private List<int> BMobility = new List<int>();
+        private List<int> WValue = new List<int>();
+        private List<int> BValue = new List<int>();
+
+        public static ScoreSheet Instance
         {
-            Sheet = new List<Move>();
-            score = "";
-            Player1 = "";
-            Player2 = "";
-            tournament = "";
-            site = "";
-            round = "";
-            timecontrol = "";
-            Player1Elo = 0;
-            Player1Elo = 0;
-            MoveIndicator = MovementIndicator.Instance;
-
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (_lock)
+                    {
+                        if (_instance == null)
+                        {
+                            _instance = new ScoreSheet();
+                        }
+                    }
+                }
+                return _instance;
+            }
         }
+    
 
         public int NumberOfMoves()
         {
@@ -75,6 +84,103 @@ namespace ChessGame
                 m = Sheet[2 * n + 1];
             }
           return m;
+        }
+
+        public List<int> WhiteMobility()
+        {
+            return WMobility;
+        }
+        public List<int> BlackMobility()
+        {
+            return BMobility;
+        }
+        public List<int> WhiteValue()
+        {
+            return WValue;
+        }
+        public List<int> BlackValue()
+        {
+            return BValue;
+        }
+
+        public int WhiteMobility(Indicator ind)
+        {
+            return GetValue(WMobility, ind, Turn.White);
+        }
+        public int BlackMobility(Indicator ind)
+        {
+            return GetValue(BMobility, ind, Turn.Black);
+        }
+        public int WhiteValue(Indicator ind)
+        {
+            return GetValue(WValue, ind, Turn.White);
+        }
+        public int BlackValue(Indicator ind)
+        {
+            return GetValue(BValue, ind, Turn.Black);
+        }
+       
+        private int GetValue(List<int> ls, Indicator ind, Turn t)
+        {
+            if (ind.Plays == t)
+            {
+                if (ind.No - 1 < WMobility.Count)
+                    return WMobility[ind.No - 1];
+                else
+                    return -1;
+            }
+            else
+            {
+                if (ind.No < WMobility.Count)
+                    return WMobility[ind.No];
+                else
+                    return -1;
+            }
+        }
+        public void Update(List<Piece> B, Indicator ind)
+        {
+            Piece p;
+            if (ind.Plays==Turn.White)
+            {
+                for (int i = 0; i < ind.No-WMobility.Count; i++) WMobility.Add(0);  
+                for (int i = 0; i < ind.No - WValue.Count; i++) WValue.Add(0);
+               
+                for (int i = 0; i < B.Count; i++)
+                {
+                    p = B[i];
+                    if (p is object)
+                    {
+                        if (p.PieceColor == Color.White)
+                        {
+                            WMobility[ind.No - 1] += p.Mobility();
+                            WValue[ind.No - 1] += p.Value;
+                        } 
+                    }
+                }
+
+            }
+            else
+            {
+                for (int i = 0; i < ind.No- BMobility.Count; i++) BMobility.Add(0);
+                for (int i = 0; i < ind.No- BValue.Count; i++) BValue.Add(0);
+
+                for (int i = 0; i < B.Count; i++)
+                {
+                    p = B[i];
+                    if (p is object)
+                    {
+                        if (p.PieceColor == Color.Black)
+                        {
+                            BMobility[ind.No - 1] += p.Mobility();
+                            BValue[ind.No- 1] += p.Value;
+                        }
+
+                    }
+
+                }
+
+            }
+          
         }
         public string Site   // property
         {
