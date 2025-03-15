@@ -59,7 +59,8 @@ namespace ChessGame
             if ((from>0)&&(from<=to)&& (to<=NumberOfMoves()))
                {
                 for (int i = from - 1; i < to * 2 + 1; i++)
-                    ls.Add(Sheet[i]);
+                    if(i<Sheet.Count)
+                      ls.Add(Sheet[i]);
                }
 
             return ls;
@@ -119,32 +120,37 @@ namespace ChessGame
         {
             return GetValue(BValue, ind, Turn.Black);
         }
-       
+       //Does not work!!! Ind gives the number of move but ls has the double number of move
         private int GetValue(List<int> ls, Indicator ind, Turn t)
         {
             if (ind.Plays == t)
             {
-                if (ind.No - 1 < WMobility.Count)
-                    return WMobility[ind.No - 1];
+                if (ind.No - 1 < ls.Count)
+                    return ls[ind.No - 1];
                 else
                     return -1;
             }
             else
             {
-                if (ind.No < WMobility.Count)
-                    return WMobility[ind.No];
+                if (ind.No < ls.Count)
+                    return ls[ind.No];
                 else
                     return -1;
             }
         }
-        public void Update(List<Piece> B, Indicator ind)
+        public void Update(List<Piece> B)
         {
             Piece p;
-            if (ind.Plays==Turn.White)
+
+            try
             {
-                for (int i = 0; i < ind.No-WMobility.Count; i++) WMobility.Add(0);  
-                for (int i = 0; i < ind.No - WValue.Count; i++) WValue.Add(0);
+
+                WMobility.Add(0);
+                  WValue.Add(0);
+               BMobility.Add(0);
+                  BValue.Add(0);
                
+
                 for (int i = 0; i < B.Count; i++)
                 {
                     p = B[i];
@@ -152,35 +158,23 @@ namespace ChessGame
                     {
                         if (p.PieceColor == Color.White)
                         {
-                            WMobility[ind.No - 1] += p.Mobility();
-                            WValue[ind.No - 1] += p.Value;
-                        } 
-                    }
-                }
-
-            }
-            else
-            {
-                for (int i = 0; i < ind.No- BMobility.Count; i++) BMobility.Add(0);
-                for (int i = 0; i < ind.No- BValue.Count; i++) BValue.Add(0);
-
-                for (int i = 0; i < B.Count; i++)
-                {
-                    p = B[i];
-                    if (p is object)
-                    {
-                        if (p.PieceColor == Color.Black)
-                        {
-                            BMobility[ind.No - 1] += p.Mobility();
-                            BValue[ind.No- 1] += p.Value;
+                            WMobility[WMobility.Count-1] += p.Mobility();
+                            WValue[WValue.Count-1] += p.Value;
                         }
-
+                        else
+                        {
+                            BMobility[BMobility.Count-1] += p.Mobility();
+                            BValue[BValue.Count-1] += p.Value;
+                        }
                     }
-
+                  
                 }
-
             }
-          
+            catch (Exception e)
+            {
+
+                throw;
+            }
         }
         public string Site   // property
         {
@@ -202,7 +196,7 @@ namespace ChessGame
             get { return Player2; }   // get method
             set { Player2 = value; }   // set method
         }
-        public string Event   // property
+        public string Tournament  // property
         {
             get { return tournament; }   // get method
             set { tournament = value; }   // set method

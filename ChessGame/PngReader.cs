@@ -81,7 +81,7 @@ namespace ChessGame
 
                 switch (key)
                 {
-                    case "Event": MySheet.Event = value; break;
+                    case "Event": MySheet.Tournament = value; break;
                     case "Site": MySheet.Site= value; break;
                     case "Date": MySheet.TournamentDate = DateTime.Parse(value); break;
                     case "Round": MySheet.Round = value; break;

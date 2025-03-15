@@ -97,6 +97,7 @@ namespace ChessGame
             var pgnReader = new PgnReader();
             MySheet = pgnReader.GetScoreSheet(sb);
             int NumMoves = MySheet.NumberOfMoves();
+            MySheet.Update(Game[Game.Count() - 1].GetPieces());
             Color c;
             Board B;
             for (int i = 0; i < NumMoves; i++)
@@ -132,6 +133,7 @@ namespace ChessGame
             var pgnReader = new PgnReader();
             MySheet = pgnReader.GetScoreSheet(filePath);
             int NumMoves = MySheet.NumberOfMoves();
+            MySheet.Update(Game[Game.Count()-1].GetPieces());
             Color c;
             Board B;
             for (int i = 0; i < NumMoves; i++)
@@ -199,9 +201,9 @@ namespace ChessGame
                         if (enPas.IsAvailable) enPas.DangerPawn=p;
 
                         B.UpdateMoves(); 
-                        MoveIndicator.NextMove();
-                        MySheet.Update(B.GetPieces(),MoveIndicator.GetIndex);
-                       
+                       MoveIndicator.NextMove();
+                        MySheet.Update(B.GetPieces());
+                        
                     }
                     else
                     {
@@ -217,9 +219,9 @@ namespace ChessGame
                         ls[j].MovePieceTo(ls[j + 1]);
                     }
                     B.UpdateMoves();
-                    MoveIndicator.NextMove();
-                    MySheet.Update(B.GetPieces(), MoveIndicator.GetIndex);
-                    
+                     MoveIndicator.NextMove();
+                    MySheet.Update(B.GetPieces());
+                   
                 }
             }
             return B;
