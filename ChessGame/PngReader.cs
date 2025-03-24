@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace ChessGame
 {
@@ -39,17 +40,7 @@ namespace ChessGame
             Moves = new List<string>();
         }
 
-        public List<Board> ReadFromFile(string filePath)
-        {
-            List<Board> G=new List<Board>();
-            if (!File.Exists(filePath))
-                throw new FileNotFoundException($"File not found: {filePath}");
-
-            string pgnContent = File.ReadAllText(filePath);
-            ParsePgn(pgnContent);
-            return G;
-        }
-
+     
         public ScoreSheet GetScoreSheet(string filePath)
         {
           
@@ -69,7 +60,11 @@ namespace ChessGame
         private ScoreSheet FillScoreSheet(string pgnContent)
         {
             ScoreSheet MySheet = new ScoreSheet();
-            bool bHasClockTime = pgnContent.Contains("%clk");
+            // pgnContent = pgnContent.Replace("\n", " ");
+           //Remove parts inside { } or ( )
+            pgnContent = ClearPNG(pgnContent);
+
+            bool bHasClockTime = pgnContent.Contains("...");
             // Extract metadata using regex
             var metadataRegex = new Regex(@"\[(?<key>[A-Za-z]+) ""(?<value>[^""]+)""\]");
             var metadataMatches = metadataRegex.Matches(pgnContent);
@@ -82,55 +77,119 @@ namespace ChessGame
                 switch (key)
                 {
                     case "Event": MySheet.Tournament = value; break;
-                    case "Site": MySheet.Site= value; break;
-                    case "Date": MySheet.TournamentDate = DateTime.Parse(value); break;
+                    case "Site": MySheet.Site = value; break;
                     case "Round": MySheet.Round = value; break;
                     case "White": MySheet.WhitePlayer = value; break;
                     case "Black": MySheet.BlackPlayer = value; break;
                     case "Result": MySheet.Score = value; break;
-                    case "WhiteElo": break;
-                    case "BlackElo": break;
-                    case "WhiteFideId": break;
-                    case "WhitePlayerId": break;
-                    case "BlackFideId": break;
-                    case "BlackPlayerId": break;
-                    case "TimeControl": break;
-                    case "Tournament": break;
-                    case "UTCDate": break;
-                    case "UTCTime": break;
+                    case "WhiteElo":
+                        try
+                        {
+                            MySheet.WhitePlayerELO = Int32.Parse(value);
+                        }
+                        catch (FormatException)
+                        {
+                            MySheet.WhitePlayerELO = 0; 
+                        }
+                        break;
+                    case "BlackElo":
+                        try
+                        {
+                            MySheet.BlackPlayerELO = Int32.Parse(value);
+                        }
+                        catch (FormatException)
+                        {
+                            MySheet.WhitePlayerELO = 0;
+                        }
+                        break;
+                    case "WhiteFideId": MySheet.WhiteFideId = value; break;
+                    case "WhitePlayerId": MySheet.WhitePlayerId = value; break;
+                    case "BlackFideId": MySheet.BlackFideId = value; break;
+                    case "BlackPlayerId": MySheet.BlackPlayerId = value; break;
+                    case "TimeControl": MySheet.TimeControl = value; break;
+                    
+                    case "UTCDate":
+                    case "Date":
+                        try
+                        {
+                            
+                            MySheet.UTCDate =  DateTime.Parse(value, CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException)
+                        {
+                            MySheet.UTCDate = default(DateTime);
+                        }
+                        break;
+                    case "UTCTime":
+                  
+                        try
+                        {
+                       
+                            MySheet.UTCDateTime = DateTime.ParseExact(value, "HH:mm:ss",CultureInfo.InvariantCulture);
+                        }
+                        catch (FormatException)
+                        {
+                            MySheet.UTCDateTime = default(DateTime);
+                        }
+                        break;
 
-    }
+                }
 }
             Regex movesRegex;
             int g1, g2;
             // Extract moves
             if (bHasClockTime)
             {
-                movesRegex = new Regex(@"\d+\.\s+(\S+)(?:\s+\{[^}]*\})?\s+(\S+)(?:\s+\{[^}]*\})?\s+(\S+)");
+                //  movesRegex = new Regex(@"\d+\.\s+(\S+)(?:\s+\{[^}]*\})?\s+(\S+)(?:\s+\{[^}]*\})?\s+(\S+)");
+                //1.d4 {[% clk 00:15:00] }1... d5 {[% clk 00:15:00] }
+                //2.c4 {[% clk 00:14:57] }2... c6 {[% clk 00:14:50] }
+                // (\d +\.)\s + ([\w\-#]+)\s+(\{((.|\n)*?)\})+\1\.+\s+([\w\-#]+)\s
+                //movesRegex = new Regex(@"(\d+\.)\s+([\w\-#]+)\s+(\{[^\}]+\})\s+\1\.+\s+([\w\-#]+)\s+(\{[^\}]+\})\s+");
+                //(\d+\.+)\s+([a-zA-Z0-9+#=-]+)
+                movesRegex = new Regex(@"(\d+)\.+\s*([a-zA-Z0-9+#=-]+)(?:\s*\{[^}]*\})?\s+(\.\.\.\s*([a-zA-Z0-9+#=-]+))?");
 
-                g1 = 1;g2 = 3;
+                g1 = 2;g2 = -1;
             }
             else
             {
-                movesRegex = new Regex(@"\d+\.\s*([a-zA-Z0-9+#=-]+)\s*([a-zA-Z0-9+#=-]*)");
-                g1 = 1;g2 = 2;
+
+                // (\d +\.+)\s + ([a - zA - Z0 - 9 +#=-]+)\s([a-zA-Z0-9+#=-]+)
+                movesRegex = new Regex(@"(\d+\.+)\s+([a-zA-Z0-9+#=-]+)\s+([a-zA-Z0-9+#=-]+)"); //matches group 2-3
+                g1 = 2;g2 = 3;
             }
           
 
             var movesMatches = movesRegex.Matches(pgnContent);
-
+            int counter = 0;
             foreach (Match match in movesMatches)
             {
                 Move m;
-                m = ParseMove(match.Groups[g1].Value);
-                m.color = Color.White;
-                if(m.Position is object || m.Castle.Length>0 ) MySheet.AddMove(m); // White's move
-                if (match.Groups[g2].Success && !string.IsNullOrWhiteSpace(match.Groups[g2].Value))
+                if (g2 > 0)
                 {
-                    m = ParseMove(match.Groups[g2].Value);
-                    m.color = Color.Black;
-                    if (m.Position is object || m.Castle.Length > 0) MySheet.AddMove(m);
-                  
+                    m = ParseMove(match.Groups[g1].Value);
+                    m.color = Color.White;
+                    if (m.Position is object || m.Castle.Length > 0) MySheet.AddMove(m); // White's move
+                    if (match.Groups[g2].Success && !string.IsNullOrWhiteSpace(match.Groups[g2].Value))
+                    {
+                        m = ParseMove(match.Groups[g2].Value);
+                        if (m is object)
+                        {
+                            m.color = Color.Black;
+                            if (m.Position is object || m.Castle.Length > 0) MySheet.AddMove(m);
+                        }
+
+                    }
+                }
+                else
+                {
+                    counter++;
+                    m = ParseMove(match.Groups[g1].Value);
+                    if (m is object)
+                    {
+                        if (counter % 2 > 0) m.color = Color.White;
+                        else m.color = Color.Black;
+                        if (m.Position is object || m.Castle.Length > 0) MySheet.AddMove(m); // White's move
+                    }
                 }
             }
             return MySheet;
@@ -145,10 +204,12 @@ namespace ChessGame
 
             if (match.Success)
             {
+                m.Annotation = move;
+
                 if (match.Groups["castle"].Success)
                 {
                     m.PieceName = match.Groups["castle"].Value;
-                    string castleText = m.PieceName == "O-O" ? "KingSideCastle" : m.PieceName == "O-O-O" ? "QueenSideCastle" : ""; 
+                    string castleText = m.PieceName == "O-O" ? "KingSideCastle" : m.PieceName == "O-O-O" ? "QueenSideCastle" : "";
                     m.Castle = castleText;
                 }
                 else
@@ -196,56 +257,33 @@ namespace ChessGame
                     string promotionText = !string.IsNullOrEmpty(promotion) ? $" and promotes to {promotion[1]}" : "";
                     string enPassantText = !string.IsNullOrEmpty(enPassant) ? " via en passant" : "";
                     string checkText = check == "+" ? " and puts the opponent in check" : check == "#" ? " and checkmates" : "";
-                   
+
                     m.PieceName = pieceName;
-                    m.Disambiguation= disambiguation;
+                    m.Disambiguation = disambiguation;
                     Pos p = new Pos(Convert.ToChar(destFile), Int32.Parse(destRank));
                     m.Position = p;
                     m.Promotion = promotionText;
                     m.EnPassant = enPassantText;
                     m.Check = checkText;
-                    
+
+                    m.Action = action;
+                    m.Capture = capture;
+
 
                     // Console.WriteLine($"{pieceName}{disambiguation} {action} {destFile}{destRank}{promotionText}{enPassantText}{checkText}");            
                 }
             }
+            else
+                m = null;
             return m;
         }
-        private void ParsePgn(string pgnContent)
+        private string ClearPNG(string input)
         {
-            // Extract metadata using regex
-            var metadataRegex = new Regex(@"\[(?<key>[A-Za-z]+) ""(?<value>[^""]+)""\]");
-            var metadataMatches = metadataRegex.Matches(pgnContent);
+           
+            string output = Regex.Replace(input, @"\{.*?\}", "");
+            output = Regex.Replace(output, @"\(.*?\)", "");
 
-            foreach (Match match in metadataMatches)
-            {
-                var key = match.Groups["key"].Value;
-                var value = match.Groups["value"].Value;
-
-                switch (key)
-                {
-                    case "Event": Event = value; break;
-                    case "Site": Site = value; break;
-                    case "Date": Date = value; break;
-                    case "Round": Round = value; break;
-                    case "White": White = value; break;
-                    case "Black": Black = value; break;
-                    case "Result": Result = value; break;
-                }
-            }
-
-            // Extract moves
-            var movesRegex = new Regex(@"\d+\.\s*([a-zA-Z0-9+#=]+)\s*([a-zA-Z0-9+#=]*)");
-            var movesMatches = movesRegex.Matches(pgnContent);
-
-            foreach (Match match in movesMatches)
-            {
-                Moves.Add(match.Groups[1].Value); // White's move
-                if (match.Groups[2].Success && !string.IsNullOrWhiteSpace(match.Groups[2].Value))
-                {
-                    Moves.Add(match.Groups[2].Value); // Black's move
-                }
-            }
+            return output.Trim();
         }
 
         public void PrintGameInfo()

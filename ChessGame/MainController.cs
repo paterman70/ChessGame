@@ -175,7 +175,7 @@ namespace ChessGame
             m = MySheet.GetMove(c, i);
             if (m is object)
             {
-                if (m.Castle.Length == 0)
+                if (m.Castle is null)
                 {
 
                     p = B.PieceOfMove(m);

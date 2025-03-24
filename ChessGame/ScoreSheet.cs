@@ -18,7 +18,8 @@ namespace ChessGame
         string timecontrol = "";
         int Player1Elo=0;
         int Player2Elo=0;
-        DateTime date;
+      
+
         DateTime Player1EndingTime;
         DateTime Player2EndingTime;
         private MovementIndicator MoveIndicator =MovementIndicator.Instance;
@@ -47,11 +48,27 @@ namespace ChessGame
                 return _instance;
             }
         }
-    
+     
+        public List<List<string>> GetMovesAnnotation()
+        {
+            List<List<string>> M = new List<List<string>>();
+            List<string> L;
+            for (int i=0;i<Sheet.Count;i+=2)
+            {
+                L = new List<string>();
+                L.Add(Sheet[i].Annotation);
+                if ((i+1) < Sheet.Count)
+                    L.Add(Sheet[i+1].Annotation);
+                else
+                    L.Add("");
+                M.Add(L);
+            }
+            return M;
+        }
 
         public int NumberOfMoves()
         {
-            return Sheet.Count / 2 + Sheet.Count % 2;
+            return (Sheet.Count+1) / 2 + Sheet.Count % 2;
         }
         public List<Move> MoveRange(int from, int to)
         {
@@ -120,7 +137,15 @@ namespace ChessGame
         {
             return GetValue(BValue, ind, Turn.Black);
         }
-       //Does not work!!! Ind gives the number of move but ls has the double number of move
+        public string WhiteFideId { get; set; }
+        public string WhitePlayerId { get; set; }
+        public string BlackFideId { get; set; }
+        public string BlackPlayerId { get; set; }
+
+        public DateTime UTCDate { get; set; }
+        public DateTime UTCDateTime { get; set; }
+
+        //Does not work!!! Ind gives the number of move but ls has the double number of move
         private int GetValue(List<int> ls, Indicator ind, Turn t)
         {
             if (ind.Plays == t)
@@ -223,11 +248,7 @@ namespace ChessGame
             set { Player2Elo = value; }   // set method
         }
 
-        public DateTime TournamentDate   // property
-        {
-            get { return date; }   // get method
-            set { date = value; }   // set method
-        }
+       
         public DateTime WhitePlayerTime   // property
         {
             get { return Player1EndingTime; }   // get method
