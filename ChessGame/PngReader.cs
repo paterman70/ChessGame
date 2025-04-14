@@ -59,7 +59,7 @@ namespace ChessGame
         }
         private ScoreSheet FillScoreSheet(string pgnContent)
         {
-            ScoreSheet MySheet = new ScoreSheet();
+            ScoreSheet MySheet = ScoreSheet.Instance;
             // pgnContent = pgnContent.Replace("\n", " ");
            //Remove parts inside { } or ( )
             pgnContent = ClearPNG(pgnContent);
@@ -155,6 +155,8 @@ namespace ChessGame
 
                 // (\d +\.+)\s + ([a - zA - Z0 - 9 +#=-]+)\s([a-zA-Z0-9+#=-]+)
                 movesRegex = new Regex(@"(\d+\.+)\s+([a-zA-Z0-9+#=-]+)\s+([a-zA-Z0-9+#=-]+)"); //matches group 2-3
+                if (movesRegex.Matches(pgnContent).Count==0)
+                    movesRegex = new Regex(@"(\d+\.+)+([a-zA-Z0-9+#=-]+)\s+([a-zA-Z0-9+#=-]+)"); //matches group 2-3
                 g1 = 2;g2 = 3;
             }
           
@@ -167,22 +169,26 @@ namespace ChessGame
                 if (g2 > 0)
                 {
                     m = ParseMove(match.Groups[g1].Value);
-                    m.color = Color.White;
-                    if (m.Position is object || m.Castle.Length > 0) MySheet.AddMove(m); // White's move
-                    if (match.Groups[g2].Success && !string.IsNullOrWhiteSpace(match.Groups[g2].Value))
+                    if (m is object)
                     {
-                        m = ParseMove(match.Groups[g2].Value);
-                        if (m is object)
+                        m.color = Color.White;
+                        if (m.Position is object || m.Castle.Length > 0) MySheet.AddMove(m); // White's move
+                        if (match.Groups[g2].Success && !string.IsNullOrWhiteSpace(match.Groups[g2].Value))
                         {
-                            m.color = Color.Black;
-                            if (m.Position is object || m.Castle.Length > 0) MySheet.AddMove(m);
-                        }
+                            m = ParseMove(match.Groups[g2].Value);
+                            if (m is object)
+                            {
+                                m.color = Color.Black;
+                                if (m.Position is object || m.Castle.Length > 0) MySheet.AddMove(m);
+                            }
 
+                        }
                     }
                 }
                 else
                 {
                     counter++;
+                   
                     m = ParseMove(match.Groups[g1].Value);
                     if (m is object)
                     {
@@ -199,7 +205,7 @@ namespace ChessGame
         {
 
             Move m = new Move() ;
-            string movePattern = @"(?<castle>O-O(?:-O)?)|(?<piece>[KQRBN]?)(?<originFile>[a-h]?)(?<originRank>[1-8]?)(?<capture>x?)(?<destFile>[a-h])(?<destRank>[1-8])(?<promotion>=?[QRBN])?(?<enPassant>\s*e\.p\.)?(?<check>[+#]?)";
+            string movePattern = @"(?<castle>O-O(?:-O)?)|(?<castle>0-0(?:-0)?)|(?<piece>[KQRBN]?)(?<originFile>[a-h]?)(?<originRank>[1-8]?)(?<capture>x?)(?<destFile>[a-h])(?<destRank>[1-8])(?<promotion>=?[QRBN])?(?<enPassant>\s*e\.p\.)?(?<check>[+#]?)";
             var match = Regex.Match(move, movePattern);
 
             if (match.Success)
@@ -210,6 +216,8 @@ namespace ChessGame
                 {
                     m.PieceName = match.Groups["castle"].Value;
                     string castleText = m.PieceName == "O-O" ? "KingSideCastle" : m.PieceName == "O-O-O" ? "QueenSideCastle" : "";
+                    if (castleText.Length==0)
+                        castleText = m.PieceName == "0-0" ? "KingSideCastle" : m.PieceName == "0-0-0" ? "QueenSideCastle" : "";
                     m.Castle = castleText;
                 }
                 else
@@ -220,11 +228,13 @@ namespace ChessGame
                     string capture = match.Groups["capture"].Value;
                     string destFile = match.Groups["destFile"].Value;
                     string destRank = match.Groups["destRank"].Value;
-                    string promotion = match.Groups["promotion"].Value;
                     string enPassant = match.Groups["enPassant"].Value;
                     string check = match.Groups["check"].Value;
                     string castle = match.Groups["castle"].Value;
+                    string promotion = match.Groups["promotion"].Value;
 
+                   
+                    
                     // Replace this with the switch statement above
                     string pieceName;
                     switch (piece)

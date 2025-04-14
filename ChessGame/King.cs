@@ -17,6 +17,7 @@ namespace ChessGame
             else
                 Symbol = "bK";
             PieceName = "King";
+            Value = 4;
         }
         public override List<string> GetCaptures()
         {

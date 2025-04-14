@@ -44,6 +44,13 @@ namespace ChessGame
             }
         }
 
+        public static void Reset()
+        {
+            lock (_lock)
+            {
+                _instance = null;
+            }
+        }
         public GState State   // property
         {
             get { return st; }   // get method

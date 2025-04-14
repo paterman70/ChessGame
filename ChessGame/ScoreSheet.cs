@@ -31,6 +31,7 @@ namespace ChessGame
         private List<int> WValue = new List<int>();
         private List<int> BValue = new List<int>();
 
+        //Singleton pattern
         public static ScoreSheet Instance
         {
             get
@@ -48,7 +49,14 @@ namespace ChessGame
                 return _instance;
             }
         }
-     
+
+        public static void Reset()
+        {
+            lock (_lock)
+            {
+                _instance = null;
+            }
+        }
         public List<List<string>> GetMovesAnnotation()
         {
             List<List<string>> M = new List<List<string>>();

@@ -33,31 +33,49 @@ namespace ChessGame
                 return _instance;
             }
         }
-        public void UpdateState(Piece p, Move m) //Update state before move
+        public static void Reset()
+        {
+            lock (_lock)
+            {
+                _instance = null;
+            }
+        }
+        public void UpdateState(Piece p, Move m,Board B) //Update state before move
         {
             Pawn pn = new Pawn(p.PieceColor);
             if (p.GetType() == pn.GetType())
             {
                 if (Math.Abs(p.cell.Position.Rank - m.Position.Rank) > 1)
                 {
-                    m_Ind = M_Indicator.GetIndex;
+                    Cell c;
+                    for (int j=-1;j<=1;j+=2)
+                        {
+                            c= B.GetCell(m.Position.FileIndex + j, m.Position.Rank);
+                            if (c is object)
+                            {
+                                if ((c.CellStage == CellStage.BlackOccupied && p.PieceColor==Color.White)||
+                                (c.CellStage == CellStage.WhiteOccupied && p.PieceColor == Color.Black))
+                                {
+                                    m_Ind = M_Indicator.GetIndex;
+                                    enPos.File = m.Position.File;
+                                    if (p.PieceColor == Color.White)
+                                            enPos.Rank = m.Position.Rank-1;
+                                    else
+                                        enPos.Rank = m.Position.Rank + 1;
+                                    
+                                    bAvailable = true;
+                                    break;
+                                }
 
-                    enPos.File = m.Position.File;
-                    switch (p.PieceColor)
-                    {
-                        case Color.White:
-                            enPos.Rank = m.Position.Rank - 1;
-                            break;
-                        case Color.Black:
-                            enPos.Rank = m.Position.Rank + 1;
-                            break;
-                    }
-                    bAvailable = true;
+                            }
+                        }
                 }
             }
             else
                 bAvailable = false;
         }
+
+
         public bool IsAvailable   // property
         {
             get { return bAvailable; }   // get method

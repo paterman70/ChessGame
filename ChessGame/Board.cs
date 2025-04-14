@@ -9,7 +9,7 @@ namespace ChessGame
    
     public class Board:IBoard
     {
-        List<char> Files = new List<char> { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+        readonly List<char> Files = new List<char> { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
         List<Piece> WhitePieces;
         List<Piece> BlackPieces;
 
@@ -175,19 +175,15 @@ namespace ChessGame
                
                 if (lP[i].IsPosInMoves(m.Position)&& lP[i].PieceName==m.PieceName)
                 {
-                    if (m.Disambiguation.Length == 0) //no Disambiguation
+                    if (m.Disambiguation.Length >0 ) // Disambiguation
                     {
-                        p = lP[i];
-                     
-                        break;
-                    }
-                    else
-                    {
+                      
+
                         string st = m.Disambiguation.Substring(m.Disambiguation.IndexOf(" "));
                         st = st.Trim();
-                        if(int.TryParse(st, out int n)) //Disambiguation in Rank
+                        if (int.TryParse(st, out int n)) //Disambiguation in Rank
                         {
-                            if (lP[i].cell.Position.Rank==n)
+                            if (lP[i].cell.Position.Rank == n)
                             {
                                 p = lP[i];
                                 break;
@@ -203,6 +199,32 @@ namespace ChessGame
                             }
 
                         }
+                    }
+                    else if(m.Promotion.Length>0)
+                    {
+                        switch (m.Promotion[m.Promotion.Length -1].ToString())
+                           {
+                            case "Q":
+                                p = new Queen(lP[i].PieceColor);
+                             break;
+                            case "N":
+                                p = new Knight(lP[i].PieceColor);
+                                break;
+                            case "R":
+                                p = new Rook(lP[i].PieceColor);
+                                break;
+                            case "B":
+                                p = new Bishop(lP[i].PieceColor);
+                                break;
+                        }
+                        p.cell=lP[i].cell;
+                        p.cell.SetPiece(p);
+                    }
+                    else
+                    {
+                        p = lP[i];
+
+                        break;
                     }
                 }
 
@@ -352,7 +374,7 @@ namespace ChessGame
         private void CheckForThreats(Color c)
         {
             List<Piece> ls = PiecesThreatingKing(c);
-            if (ls.Count == 0)
+            if (ls is object && ls.Count == 0)
             {
                 Castling(c);
                 switch(c)
@@ -495,8 +517,8 @@ namespace ChessGame
             {
                 case Pawn p:
                     {
-                        m.SetUpMoves(FilterMoves(m.GetUpMoves(), ref CaptureMoves, mycolor, true));
-                        m.SetCaptureMoves(FilterCaptureMoves(m.GetCaptureMoves(), ref CaptureMoves, mycolor));
+                        m.SetUpMoves(FilterPawnMoves(m.GetUpMoves()));
+                        m.SetCaptureMoves(FilterCaptureMoves(m.GetCaptureMoves(), ref CaptureMoves, _cell.CellPiece.EnemyColor()));
                         break;
                     }
                 case Rook r:
@@ -570,8 +592,37 @@ namespace ChessGame
             return ls;
 
         }
+        private List<Pos> FilterPawnMoves(List<Pos> PossibleMoves)
+        {
+            List<Pos> ls = new List<Pos>();
+            Cell c;
 
-        private List<Pos> FilterCaptureMoves(List<Pos> PossibleMoves, ref List<Pos> cm, Color mycolor)
+            if(PossibleMoves.Count>1)
+            {
+               
+                if ((PossibleMoves[0].Rank==4)|| (PossibleMoves[0].Rank == 5))
+                {
+                    Pos p = PossibleMoves[0];
+                    PossibleMoves[0] = PossibleMoves[1];
+                    PossibleMoves[0] = p;
+                }
+            }
+
+            for (int i = 0; i < PossibleMoves.Count; i++)
+            {
+                c = GetCell(PossibleMoves[i].File, PossibleMoves[i].Rank);
+                if (c.CellPiece is object)
+                {
+                    break;
+                }
+                else
+                    ls.Add(PossibleMoves[i]);
+            }
+
+            return ls;
+
+        }
+        private List<Pos> FilterCaptureMoves(List<Pos> PossibleMoves, ref List<Pos> cm, Color enemycolor)
         {
             List<Pos> ls = new List<Pos>();
             Cell c;
@@ -580,7 +631,7 @@ namespace ChessGame
             for (int i = 0; i < PossibleMoves.Count; i++)
             {
                 c = GetCell(PossibleMoves[i].File, PossibleMoves[i].Rank);
-                if (c.CellPiece is object )
+                if (c.CellPiece is object && c.CellPiece.PieceColor == enemycolor )
                 {
                     
                         ls.Add(PossibleMoves[i]);
@@ -709,8 +760,29 @@ namespace ChessGame
         }
         public Cell GetCell(char f, int rank)
         {
+            try
+            {
             int file = Files.IndexOf(f);
             return MyBoard[rank-1][file];
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+           
+        }
+
+        public Cell GetCell(int f, int rank)
+        {
+            try
+            {
+                return MyBoard[rank - 1][f];
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+
         }
 
         public CellStage GetCellStage(char f,int rank)

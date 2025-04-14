@@ -28,7 +28,13 @@ namespace ChessGame
         private string pieceName;
 
         
-
+        public Color EnemyColor()
+        {
+            if (_color == Color.White)
+                return Color.Black;
+            else
+                return Color.White;
+        }
        public string PieceName   // property
         {
             get { return pieceName; }   // get method

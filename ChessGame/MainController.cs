@@ -17,8 +17,8 @@ namespace ChessGame
         private XMLWriter Writer;
         private ScoreSheet MySheet;
         private GameState MyGameState;
-        private bool bverbose = true;
-        private bool bxmloutput = true;
+        private bool bverbose = false;
+        private bool bxmloutput = false;
 
         public MainController()
         {
@@ -27,7 +27,7 @@ namespace ChessGame
             Game = new List<Board>();
             Game.Add(B);
             MoveIndicator = MovementIndicator.Instance;
-            MySheet = new ScoreSheet();
+            MySheet =ScoreSheet.Instance;
             Color c = Color.White;
             WhitePlayer = new Player(c, Game[Game.Count - 1], MySheet);
 
@@ -94,6 +94,10 @@ namespace ChessGame
 
         public void Load(StringBuilder sb)
         {
+            ScoreSheet.Reset();
+            enPassant.Reset();
+            GameState.Reset();
+            MovementIndicator.Reset();
             var pgnReader = new PgnReader();
             MySheet = pgnReader.GetScoreSheet(sb);
             int NumMoves = MySheet.NumberOfMoves();
@@ -108,7 +112,8 @@ namespace ChessGame
                 if (B is object)
                 {
                     Game.Add(B);
-                    // Game[Game.Count - 1].Display();
+                    if (bverbose)
+                    Game[Game.Count - 1].Display();
                 }
 
                 c = Color.Black;
@@ -117,8 +122,8 @@ namespace ChessGame
                 if (B is object)
                 {
                     Game.Add(B);
-
-                    //  Game[Game.Count - 1].Display();
+                    if (bverbose)
+                        Game[Game.Count - 1].Display();
                 }
             }
             if (bxmloutput)
@@ -144,7 +149,8 @@ namespace ChessGame
                 if (B is object)
                 {
                     Game.Add(B);
-                    // Game[Game.Count - 1].Display();
+                    if (bverbose)
+                        Game[Game.Count - 1].Display();
                 }
 
                 c = Color.Black;
@@ -153,8 +159,8 @@ namespace ChessGame
                 if (B is object)
                 {
                     Game.Add(B);
-
-                    //  Game[Game.Count - 1].Display();
+                    if (bverbose)
+                        Game[Game.Count - 1].Display();
                 }
             }
             if (bxmloutput)
@@ -173,18 +179,21 @@ namespace ChessGame
             enPassant enPas = enPassant.Instance;
             B = (Board)Game[Game.Count - 1].Clone();
             m = MySheet.GetMove(c, i);
+         
             if (m is object)
             {
+
                 if (m.Castle is null)
                 {
 
                     p = B.PieceOfMove(m);
                     if (p is object)
                     {
-                        Pos ps;
-                        enPas.UpdateState(p, m);
+                        Pos ps;                 
                         Cell newcell = B.GetCell(m.Position.File, m.Position.Rank);
                         ps=p.cell.MovePieceTo(newcell);
+                        enPas.UpdateState(p, m, B);
+
                          if (ps.Rank >0)
                         {
                             Cell enPassantCapturedCell = B.GetCell(ps.File, ps.Rank);
@@ -205,11 +214,7 @@ namespace ChessGame
                         MySheet.Update(B.GetPieces());
                         
                     }
-                    else
-                    {
-                        int j;
-                        j = 1;
-                    }
+                  
                 }
                 else
                 {

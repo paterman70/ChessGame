@@ -78,6 +78,13 @@ namespace ChessGame
             }
         }
 
+        public static void Reset()
+        {
+            lock (_lock)
+            {
+                _instance = null;
+            }
+        }
         public bool Equals(Indicator other)
         {
             if (other == null) return false;

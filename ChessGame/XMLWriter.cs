@@ -183,7 +183,7 @@ namespace ChessGame
                 {
                     if (k == 0) str = "initial_position";
                     else
-                    str =(((k+1) % 2==0) ?"White":"Black") +Convert.ToInt32(k / 2+1).ToString() ;
+                    str =(((k+1) % 2==0) ?"White":"Black") +Convert.ToInt32((k+1) / 2).ToString() ;
                     MyBoard = Game[k].GetBoard();
                     
                     writer.WriteStartElement(str);//Start move
@@ -196,7 +196,7 @@ namespace ChessGame
                             {
                                 _piece = MyBoard[i][j].CellPiece;
 
-                                str = _piece.PieceColor.ToString() + "-" + _piece.PieceName+"-"+j.ToString()+ i.ToString();
+                                str = _piece.PieceColor.ToString() + "-" + _piece.PieceName+"-"+_piece.cell.Position .File+ _piece.cell.Position.Rank;
 
                                 writer.WriteStartElement("piece", str); //start row
                                 writer.WriteEndElement();

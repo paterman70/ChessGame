@@ -103,23 +103,7 @@ namespace ChessGame
             return ps;
         }
        
-        public void Promote(Cell c, Piece p)
-        {
-            Pawn pw=new Pawn(mypiece.PieceColor);
-            if (mypiece is object && mypiece.GetType()==pw.GetType()) //check if piece is pawn
-            {
-
-                if (c.CellStage == CellStage.NonOccupied || mypiece.PieceColor != c.CellPiece.PieceColor)
-                {
-                    c.SetPiece( p);
-                    c.SetCellStage(mypiece.PieceColor);
-                    c.CellPiece.IsMoved = true;
-                  
-                }
-
-            }
-
-        }
+      
 
         public bool HasPiece(Piece p)
         {
